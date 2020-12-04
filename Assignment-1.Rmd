@@ -1,0 +1,269 @@
+---
+title: "Patent Search & Analysis"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+
+# Aim
+The aim is to take a product and analyze it's patents to find technological trend, year-wise trend,assignee trend and gain valuable insights. 
+
+
+# About the Product
+The product I am going to analyze is Wireless Mouse.Wireless mouse or Optical mouse was first demonstrated by two independent inventors in 1980’s by **John Markoff & Sol Sherr**, it uses a infrared led and a four-quadrant infrared instrument to detect grid lines in pattern with infrared engrossing ink on a special metallic surface.
+Optical mouse or wireless mouse uses a light source to detect movements relative to surface, it is different from mechanical mouse, in optical mouse moving parts are not present.
+
+```{r,echo=FALSE,out.width='150px', fig.cap="Depicting Wireless Mouse",fig.align='center',fig.show='hold'}
+library(jpeg)
+library(grid)
+library(png)
+#img <- readJPEG("./wireless_mouse.jpg")
+#img2 <- readPNG("./mouse.png")
+#grid.raster(img)
+#rid.raster(img2)
+knitr::include_graphics(c("./wireless_mouse.jpg","./mouse.png"))
+```
+
+Wireless mouse consist of transmitter, reciever, battery, and reciver can be placed behind the battery inside the mouse. The reciever is connected to the computer and transmitter is inbuilt in side of the mouse, reciever and transmitter uses radio frequency to communicate each other to transfer signals from both sides and it is a continous process, if battery power drainsout we need to replace or if the battery is rechargable we need to charge before using.
+
+# Strategy
+Make use of the open source database Patentscope to conduct preliminary search for wireless mouse patents and refine our search after every result to improve precision and recall.So this means we will start with a simple query and improve the query by adding other filters in our query.After getting the best result, patents will be classified into different groups based on invention focus.
+
+\newpage
+
+# Searching in Patentscope
+## Steps Involved in Refining Search 
+1.First, started with a basic search query **FP:("wireless mouse"~1) AND (ad:[2017 TO 2020])**
+```{r,echo=FALSE, fig.cap="Search Results for Query 1",fig.align='center',out.width='350px'}
+library(jpeg)
+library(grid)
+library(png)
+
+knitr::include_graphics("./search1.png")
+```
+So, there are some unwanted results in our search results like control system,touchpad and also apparatus for charging mouse which we do not want so we will filter out that.
+
+\newpage
+
+2.So,now we wil filter apparatus,control system patents using search query **FP:("wireless mouse"~1) AND (ad:[2017 TO 2020])  ANDNOT (control OR apparatus)**
+
+```{r,echo=FALSE, fig.cap="Search Results for Query 2",fig.align='center',out.width='350px'}
+library(jpeg)
+library(grid)
+library(png)
+
+knitr::include_graphics("./search2.png")
+```
+
+So, now we do not have patents of charging apparatus or control system.still there are some patents about charging device of wireless mouse which we do not want. IPC codes for relevant patents are similar for many patents so searching via IPC can give us better results.
+
+\newpage
+
+3.We will try searching with IPC codes G06F3/0354 OR G60F3/033
+```{r,echo=FALSE, fig.cap="Breakdown of IPC codes used",fig.align='center',out.width='200px'}
+library(jpeg)
+library(grid)
+library(png)
+
+knitr::include_graphics("./IPC.png")
+```
+Search Query is **FP:("wireless mouse"~1) AND (ad:[2017 TO 2020])  ANDNOT (control OR apparatus) AND (G06F3/0354 OR G60F3/033)**
+```{r,echo=FALSE, fig.cap="Search Results for Query 3",fig.align='center',out.width='250px'}
+library(jpeg)
+library(grid)
+library(png)
+
+knitr::include_graphics("./search3.png")
+```
+Now, we have obtained a much more refined search as there are no patents relating to charging devices or apparatus.So through this search query we have obtained maximum relevant patents.
+
+\newpage
+
+# Search Queries for other Database
+
+## Google Patents
+Final Search Query: **((wireless mouse)) NOT ( (control OR apparatus))((G06F3/0354 ) OR (G60F3/033)) before:publication:20201010 after:publication:20170101**
+
+## Espacenet
+Final Search Query: **^wireless prox/distance<1 mouse AND pd="2017:2020" NOT (control OR apparatus) AND (ipc="G06F3/0354" OR ipc=G06F3/033)**
+
+
+# Classifying Patents based on Invention Focus
+I am going to classify the top 50 patents based on their Invention Focus
+So, I divided the patents into 10 categories of Invention Focus: 
+
+
+```{r,echo=FALSE,categories}
+Invention.Focus1 <- c("Design & Storage",
+"Mouse  Design" ,
+"Wireless Receiver",
+"Energy",
+"Mouse with Touch")
+Invention.Focus2 <- c(
+"Multipurpose Mouse", 
+ "Charging of Mouse", 
+"Power Generating Mouse",
+ "Mouse Based on Solar Energy",
+ "Magnetic Mouse")
+
+d <- data.frame(Invention.Focus=Invention.Focus1,InventionFocus=Invention.Focus2)
+knitr::kable(d,caption="Categories of Invention Focus in Columns")
+
+```
+
+```{r,echo=FALSE,table}
+library(xlsx)
+keep <- c("Application.Id","Title","Invention.Focus")
+patent.data <- read.xlsx("./PatentScope latest.xlsx",sheetName = "ResultSet")
+row.names(patent.data) <- NULL
+invention.focus <- unique(patent.data$Invention.Focus)
+patent.data$Year <- substr(patent.data$Publication.Date,7,10)
+
+first <- patent.data[patent.data$Invention.Focus %in% invention.focus[1],]
+knitr::kable(first[,keep],caption="Patents for Design & Storage",row.names = F)
+second <- patent.data[patent.data$Invention.Focus %in% invention.focus[2],]
+knitr::kable(second[,keep],caption="Patents for Mouse Design",row.names = F)
+third <- patent.data[patent.data$Invention.Focus %in% invention.focus[3],]
+knitr::kable(third[,keep],caption="Patents for Wireless Reciever",row.names = F)
+fourth <- patent.data[patent.data$Invention.Focus %in% invention.focus[4],]
+knitr::kable(fourth[,keep],caption="Patents for Energy Efficiency of Mouse ",row.names = F)
+fifth <- patent.data[patent.data$Invention.Focus %in% invention.focus[5],]
+knitr::kable(fifth[,keep],caption="Patents for Mouse with Touch",row.names = F)
+sixth <- patent.data[patent.data$Invention.Focus %in% invention.focus[6],]
+knitr::kable(sixth[,keep],caption="Patents for Multipurpose Mouse",row.names = F)
+seven <- patent.data[patent.data$Invention.Focus %in% invention.focus[7],]
+knitr::kable(seven[,keep],caption="Patents for Charging of Mouse",row.names = F)
+```
+
+
+```{r,echo=FALSE}
+eight <- patent.data[patent.data$Invention.Focus %in% invention.focus[8],]
+knitr::kable(eight[,keep],caption="Patents for Power Generating Mouse",row.names = F)
+
+```
+
+
+```{r,echo=FALSE}
+nine <- patent.data[patent.data$Invention.Focus %in% invention.focus[9],]
+knitr::kable(nine[,keep],caption="Patents for Mouse Based on Solar Energy",row.names = F)
+ten <- patent.data[patent.data$Invention.Focus %in% invention.focus[10],]
+knitr::kable(ten[,keep],caption="Patents for Magnetic Mouse",row.names = F)
+```
+
+
+# Visualizations and Analysis
+Now, I will try and visualize the 50 patents by plotting year-wise patents,company or applicant wise patent,to see which type of patents are increasing. This will give an idea of technology trend and also are patents increasing each year.
+
+## Number of Patents Published Each Year
+The number of patents published each year will give an idea about trend of new inventions made in wireless mouse.
+```{r,echo=FALSE}
+myfunc <- function(category){
+  filter.category <- patent.data[patent.data$Year %in% category,]
+  count <- dim(filter.category)[1]
+}
+years <- unique(patent.data$Year)
+year.count <- lapply(years,myfunc)
+year.count <- c(year.count[[1]],year.count[[2]],year.count[[3]],year.count[[4]])
+year.trend <- data.frame(Number.Of.Patents=year.count,Year=years)
+knitr::kable(year.trend,caption="Number of Patents Published for each year")
+
+```
+
+```{r,echo=FALSE,fig.width=6,fig.height=4,fig.cap="Plot for Number of Patents Published each year"}
+library(ggplot2)
+ggplot(data=year.trend,aes(x=Year,y=Number.Of.Patents)) + geom_bar(stat='identity',aes(fill=Year))
+
+```
+
+From above plot we can see there is somewhat **increasing trend** from 2017 to 2019.Number of Patents in 2020 are less because that year is not completed yet.
+
+## Technology Trend 
+Number of Patents published for each Invention Focus will give an idea about which are the most active areas for inventions i.e which aspects of wireless mouse inventors are working on most.
+```{r,echo=FALSE}
+myfunc1 <- function(category){
+  filter.category <- patent.data[patent.data$Invention.Focus %in% category,]
+  count <- dim(filter.category)[1]
+}
+invention.count = lapply(invention.focus,myfunc1)
+
+invention.count <- c(invention.count[[1]],invention.count[[2]],invention.count[[3]],invention.count[[4]],invention.count[[5]],invention.count[[6]],invention.count[[7]],invention.count[[8]],invention.count[[9]],invention.count[[10]])
+
+tech.trend <- data.frame(Invention.Focus=invention.focus,Number.Of.Patents=invention.count)
+knitr::kable(tech.trend,caption="Number of Patents Published for Each Invention Category")
+```
+
+
+```{r,echo=FALSE,fig.cap="Plot For Number of Patents Published for Each Invention Category",fig.height=6,fig.width=8}
+
+ggplot(data=tech.trend,aes(x=Invention.Focus,y=Number.Of.Patents)) + geom_bar(stat='identity',aes(fill=Invention.Focus)) +  theme(axis.text.x =element_text(angle=35,vjust=0.8,hjust=1))
+```
+So, from above plot it is clear that **Mouse Design** is the most active area for new inventions, it is followed by **Power Generating Mouse** and then at third is  **Energy Efficiency of Mouse**.
+
+## Country Wise Patents
+To see which country is most involved in new inventions of Wireless Mouse.
+```{r,echo=FALSE}
+myfun2 <- function(category){
+  filter.category <- patent.data[patent.data$Country %in% category,]
+  count <- dim(filter.category)[1]
+}
+country <- unique(patent.data$Country)
+
+country.count <- lapply(country,myfun2)
+country <- gsub("CN","China",country)
+country <- gsub("KR","Korea",country)
+country.count <- c(country.count[[1]],country.count[[2]])
+country.trend <- data.frame(Number.Of.Patents=country.count,Country=country)
+knitr::kable(country.trend,caption="Number of Patents Published for different countries")
+
+```
+
+
+**China** has almost all patents i.e 47 out of 50 new inventions between **2017-2020** are made by China, they are followed by **Korea**. 
+
+\newpage
+```{r,echo=FALSE,fig.width=5,fig.height=2.5,fig.cap="Plot for Number of Patents Published each year"}
+#library(ggplot2)
+#ggplot(data=country.trend,aes(x=Country,y=Number.Of.Patents)) + geom_bar(stat='identity',aes(fill=Country))
+
+```
+
+## Technology Trend Over Time
+Technology Trend Over Time will give an idea if an area of invention is increasing over years or its trend is decreasing over years.So it will tell us which field or area is expanding as years progress.
+```{r,echo=FALSE, fig.cap="Technology Trend Over the Years",fig.align='center',out.height='360px',out.width='600px'}
+library(jpeg)
+library(grid)
+library(png)
+
+knitr::include_graphics("./tableauplot.png")
+```
+
+The Above Plot shows number of patents for each category of Invention Focus in different years.This is done so that we can see if number of patents are increasing for any specific category.
+As Year 2020 is not yet complete so Patents are less for that year
+So, Plot clearly show that patents on **Mouse Design** are always at top in every year it's trend is somewhat increasing from year 2017, there is also slight increase in number of patents for **Mouse with Touch** all other categories are almost constant and also there is no specific trend in them.
+\newpage
+
+# Assignee or Applicants Trend
+This will show which companies or organizations are patenting on Wireless Mouse
+
+```{r,echo=FALSE, fig.cap="Various Assignees or Applicants Heat Map",fig.align='center',out.height='360px',out.width='500px'}
+library(jpeg)
+library(grid)
+library(png)
+
+knitr::include_graphics("./plot3.png")
+
+```
+
+The above chart represents various assignees and the color represents number of patents,Darker Blue Color means more patents.The top assignees are **DONGGUAN XINGJIN ELECTRONIC TECHNOLOGY CO., LTD** and **DONGGUAN YIBANG ELECTRONIC TECHNOLOGY CO., LTD.** both of them are from China. All other assignees have max 1 patents only and mostly all are from China.
+
+
+# Conclusions
+After searching and analysing the patent data for wireless mouse we can conclude following 
+
+1) There is a slight increasing trend in number of patents on Wireless Mouse from 2017 to 2019. 
+2) **Mouse Design** is the main area of invention as it has the most number of patents published, it is foloowed by **Power Generating Mouse**. 
+3) **China** has the most number of patents for Wireless Mouse. 
+4) There is an increasing trend in inventions pertaining to **Mouse Design**. 
+
+5) **DONGGUAN XINGJIN ELECTRONIC TECHNOLOGY CO., LTD** and **DONGGUAN YIBANG ELECTRONIC TECHNOLOGY CO., LTD.** are the top assignees with 2 patents each.
